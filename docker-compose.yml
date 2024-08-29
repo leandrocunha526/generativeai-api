@@ -1,0 +1,45 @@
+services:
+    api:
+        build:
+            dockerfile: Dockerfile
+            context: .
+            target: development
+        env_file:
+            - .env
+        volumes:
+            - .:/app
+            - /app/node_modules
+
+        networks:
+            - docker-api-postgres
+        command: yarn run dev
+        ports:
+            - 3000:3000
+        depends_on:
+            - postgres
+
+    postgres:
+        image: postgres:16-alpine
+        restart: always
+        environment:
+            POSTGRES_HOST: ${DATABASE_HOST}
+            POSTGRES_PORT: ${DATABASE_PORT}
+            POSTGRES_DB: ${DATABASE_NAME}
+            POSTGRES_USER: ${DATBASE_USERNAME}
+            POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+            POSTGRES_HOST_AUTH_METHOD: "trust"
+        ports:
+            - "5432:5432"
+        volumes:
+            - docker-api-postgres:/var/lib/postgresql/data
+        networks:
+            - docker-api-postgres
+
+volumes:
+    docker-api-postgres:
+        driver: local
+
+networks:
+    docker-api-postgres:
+    api:
+        driver: bridge
